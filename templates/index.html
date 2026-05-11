@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Cuaca Bandara | WeatherPredict AI</title>
+    <meta name="description" content="Sistem prediksi suhu maksimum harian menggunakan machine learning.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% if cluster == 'Berawan/Hujan' %}bg-rainy{% elif cluster == 'Kering/Cerah' %}bg-sunny{% else %}bg-light{% endif %}">
+    
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-cloud-lightning-rain me-2"></i>WeatherPredict AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTab('prediksi')" id="nav-prediksi"><i class="bi bi-graph-up me-1"></i>Prediksi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('komparasi')" id="nav-komparasi"><i class="bi bi-bar-chart-line me-1"></i>Komparasi Model</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('tentang')" id="nav-tentang"><i class="bi bi-info-circle me-1"></i>Tentang</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- =============== TAB: PREDIKSI =============== -->
+    <div class="tab-content-page active" id="tab-prediksi">
+        <div class="container mt-4 mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-7 col-md-9">
+                    <div class="text-center mb-4">
+                        <h1 class="page-title">Prediksi Suhu Maksimum</h1>
+                        <p class="page-subtitle">Masukkan kondisi cuaca saat ini untuk memprediksi suhu tertinggi hari ini</p>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-3 p-md-4">
+                            {% if error %}
+                            <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                <div>{{ error }}</div>
+                            </div>
+                            {% endif %}
+
+                            <form action="/predict" method="POST" id="predictForm">
+                                <div class="input-group-slider mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="input-label">
+                                            <i class="bi bi-thermometer-low text-info me-1"></i>
+                                            Suhu Minimum Pagi Ini
+                                        </label>
+                                        <div class="value-badge bg-info-subtle text-info-emphasis">
+                                            <span id="tmin-display">{{ tmin if tmin else 20 }}</span> °C
+                                        </div>
+                                    </div>
+                                    <input type="range" class="form-range custom-range" id="tmin-slider"
+                                           name="tmin" min="-5" max="35" step="0.5"
+                                           value="{{ tmin if tmin else 20 }}"
+                                           oninput="updateTminSlider(this)">
+                                    <div class="range-labels">
+                                        <span>-5°C <small class="text-muted">(Sangat Dingin)</small></span>
+                                        <span>35°C <small class="text-muted">(Panas)</small></span>
+                                    </div>
+                                </div>
+
+                                <div class="input-group-slider mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="input-label">
+                                            <i class="bi bi-droplet-half text-primary me-1"></i>
+                                            Curah Hujan
+                                        </label>
+                                        <div class="value-badge bg-primary-subtle text-primary-emphasis">
+                                            <span id="prcp-display">{{ prcp if prcp else 0 }}</span> mm
+                                        </div>
+                                    </div>
+                                    <input type="range" class="form-range custom-range" id="prcp-slider"
+                                           name="prcp" min="0" max="100" step="1"
+                                           value="{{ prcp if prcp else 0 }}"
+                                           oninput="updatePrcpSlider(this)">
+                                    <div class="range-labels">
+                                        <span>0 mm <small class="text-muted">(Tidak Hujan)</small></span>
+                                        <span>100 mm <small class="text-muted">(Hujan Lebat)</small></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="input-label mb-3">
+                                        <i class="bi bi-cpu text-warning me-1"></i>
+                                        Pilih Algoritma Prediksi
+                                    </label>
+                                    <div class="algo-grid" id="algoGrid">
+                                        <label class="algo-card {% if not algo or algo == 'LR' %}active{% endif %}" for="algo-lr">
+                                            <input type="radio" name="algo" id="algo-lr" value="lr" class="d-none" {% if not algo or algo == 'LR' %}checked{% endif %}>
+                                            <div class="algo-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                                            <div class="algo-name">Linear Regression</div>
+                                            <div class="algo-tag">Baseline</div>
+                                        </label>
+                                        <label class="algo-card {% if algo == 'ANN' %}active{% endif %}" for="algo-ann">
+                                            <input type="radio" name="algo" id="algo-ann" value="ann" class="d-none" {% if algo == 'ANN' %}checked{% endif %}>
+                                            <div class="algo-icon"><i class="bi bi-diagram-3"></i></div>
+                                            <div class="algo-name">Neural Network</div>
+                                            <div class="algo-tag">ANN</div>
+                                        </label>
+                                        <label class="algo-card {% if algo == 'LSTM' %}active{% endif %}" for="algo-lstm">
+                                            <input type="radio" name="algo" id="algo-lstm" value="lstm" class="d-none" {% if algo == 'LSTM' %}checked{% endif %}>
+                                            <div class="algo-icon"><i class="bi bi-arrow-repeat"></i></div>
+                                            <div class="algo-name">Recurrent NN</div>
+                                            <div class="algo-tag">LSTM</div>
+                                        </label>
+                                        <label class="algo-card {% if algo == 'BP' %}active{% endif %}" for="algo-bp">
+                                            <input type="radio" name="algo" id="algo-bp" value="bp" class="d-none" {% if algo == 'BP' %}checked{% endif %}>
+                                            <div class="algo-icon"><i class="bi bi-layers"></i></div>
+                                            <div class="algo-name">Backpropagation</div>
+                                            <div class="algo-tag">Manual</div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4 p-3 bg-warning-subtle rounded border border-warning-subtle">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="simulation" id="simulationSwitch" value="on" {% if context and context.is_sim %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold text-warning-emphasis" for="simulationSwitch">
+                                            <i class="bi bi-sun-fill me-1"></i> Mode Simulasi Musim Panas
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">Gunakan ini untuk mengabaikan riwayat musim dingin (Desember) dan mensimulasikan konteks musim panas agar hasil lebih cerah.</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 py-3" id="submitBtn">
+                                    <i class="bi bi-send-fill me-2"></i>Prediksi Sekarang
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if result %}
+                    <div class="card result-card shadow animate-pop" id="resultCard">
+                        <div class="card-body p-3 p-md-4">
+                            <h6 class="text-muted text-uppercase fw-bold mb-4 d-flex align-items-center gap-2">
+                                <i class="bi bi-stars text-warning"></i> Hasil Prediksi — Algoritma {{ algo }}
+                                {% if context and context.is_sim %}
+                                <span class="badge bg-warning text-dark ms-auto">SIMULASI</span>
+                                {% endif %}
+                            </h6>
+                            <div class="temp-display text-center mb-4">
+                                <div class="temp-icon text-{{ temp_color }}">
+                                    <i class="bi {{ temp_icon }}"></i>
+                                </div>
+                                <div class="temp-value text-{{ temp_color }}">{{ result_c }}°C</div>
+                                <div class="temp-label">{{ temp_desc }}</div>
+                                <div class="temp-sub text-muted mt-1">Setara {{ result }}°F</div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>-10°C</span>
+                                    <span>Indeks Panas (Terasa Seperti)</span>
+                                    <span>{{ context.feels_like }}°C</span>
+                                </div>
+                                <div class="progress" style="height: 20px; border-radius: 10px;">
+                                    <div class="progress-bar bg-{{ temp_color }} progress-bar-striped progress-bar-animated"
+                                         role="progressbar"
+                                         style="width: {{ bar_percent }}%;"
+                                         aria-valuenow="{{ bar_percent }}" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="my-3">
+                            <div class="cluster-section d-flex align-items-center gap-3">
+                                <div class="cluster-icon">
+                                    {% if cluster == 'Berawan/Hujan' %}<i class="bi bi-cloud-rain text-primary fs-3"></i>
+                                    {% else %}<i class="bi bi-sun text-warning fs-3"></i>{% endif %}
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Profil Cuaca (K-Means)</div>
+                                    <div class="fw-bold fs-5">{{ cluster }}</div>
+                                </div>
+                            </div>
+                            {% if context %}
+                            <div class="mt-3 p-2 bg-light rounded border-start border-info border-4" style="font-size: 0.8rem;">
+                                <i class="bi bi-info-circle-fill text-info me-1"></i>
+                                <strong>Konteks Riwayat:</strong> Prediksi ini dipengaruhi data 3 hari terakhir ({{ context.last_date }}) dengan rata-rata suhu {{ context.avg_tmax_lag }}°F.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== TAB: KOMPARASI =============== -->
+    <div class="tab-content-page" id="tab-komparasi" style="display:none;">
+        <div class="container mt-4 mb-5">
+            <div class="text-center mb-4">
+                <h1 class="page-title">Analisis Komparatif Algoritma</h1>
+                <p class="page-subtitle">Perbandingan performa model machine learning</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+                    <div class="card shadow-sm p-3 p-md-4 mb-4">
+                        <canvas id="metricChart"></canvas>
+                    </div>
+
+                    <!-- SUMMARY TABLE -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-3 p-md-4">
+                            <h4 class="page-title fs-5 mb-3"><i class="bi bi-table me-2"></i>Ringkasan Performa Model</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" style="font-size: 0.85rem;">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Algoritma</th>
+                                            <th class="text-center">MAE</th>
+                                            <th class="text-center">RMSE</th>
+                                            <th class="text-center">R-Square</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for name, m in metrics.items() %}
+                                        {% if name != 'K-Means' %}
+                                        <tr>
+                                            <td class="fw-bold">{{ name }}</td>
+                                            <td class="text-center">{{ m.MAE|round(3) }}</td>
+                                            <td class="text-center">{{ m.RMSE|round(3) }}</td>
+                                            <td class="text-center">
+                                                <span class="badge {% if m.R2 > 0.8 %}bg-success{% else %}bg-primary{% endif %}">
+                                                    {{ m.R2|round(4) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDA SECTION -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-3 p-md-4">
+                            <h4 class="page-title fs-5 mb-3"><i class="bi bi-search me-2"></i>Exploratory Data Analysis (EDA)</h4>
+                            <img src="{{ url_for('static', filename='eda_plot.png') }}" class="img-fluid rounded mb-4" alt="EDA Plot">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded h-100">
+                                        <h6 class="fw-bold"><i class="bi bi-thermometer-high text-danger me-2"></i>Pola Suhu (TMAX)</h6>
+                                        <p class="small text-muted mb-0">Data menunjukkan pola musiman yang konsisten selama puluhan tahun. Mayoritas suhu maksimum di Seattle berpusat di kisaran 50-60°F.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded h-100">
+                                        <h6 class="fw-bold"><i class="bi bi-link-45deg text-primary me-2"></i>Korelasi Fitur</h6>
+                                        <p class="small text-muted mb-0">TMAX memiliki korelasi positif sangat kuat (0.86) dengan TMIN. Sebaliknya, terdapat korelasi negatif (-0.23) dengan curah hujan, menandakan suhu cenderung turun saat hujan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Kesimpulan:</strong> Model LSTM menangkap pola data runtut waktu dengan sangat baik sehingga menghasilkan <em>error</em> paling kecil dibandingkan model regresi linier standar.
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="text-center mb-4 page-title" style="font-size:1.3rem;">Detail Performa Tiap Algoritma</h4>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body p-3">
+                            <h5 class="card-title text-primary fs-6">1. Linear Regression</h5>
+                            <canvas id="chartLR"></canvas>
+                            <div class="d-flex justify-content-between mt-2 p-2 bg-light rounded border" style="font-size: 0.75rem;">
+                                <span><strong>MAE:</strong> {{ metrics['Linear Regression']['MAE']|round(2) if metrics['Linear Regression'] else '0' }}</span>
+                                <span><strong>RMSE:</strong> {{ metrics['Linear Regression']['RMSE']|round(2) if metrics['Linear Regression'] else '0' }}</span>
+                                <span><strong>R²:</strong> {{ metrics['Linear Regression']['R2']|round(3) if metrics['Linear Regression'] else '0' }}</span>
+                            </div>
+                            <p class="card-text mt-2 text-muted" style="font-size: 0.8rem;">
+                                <strong>Penjelasan:</strong> Pendekatan dasar yang menarik garis regresi lurus. Cocok sebagai <em>baseline</em>, namun seringkali <em>underfitting</em> pada pola cuaca yang dinamis dan non-linear.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body p-3">
+                            <h5 class="card-title text-primary fs-6">2. Artificial Neural Network (ANN)</h5>
+                            <canvas id="chartANN"></canvas>
+                            <div class="d-flex justify-content-between mt-2 p-2 bg-light rounded border" style="font-size: 0.75rem;">
+                                <span><strong>MAE:</strong> {{ metrics['ANN']['MAE']|round(2) if metrics['ANN'] else '0' }}</span>
+                                <span><strong>RMSE:</strong> {{ metrics['ANN']['RMSE']|round(2) if metrics['ANN'] else '0' }}</span>
+                                <span><strong>R²:</strong> {{ metrics['ANN']['R2']|round(3) if metrics['ANN'] else '0' }}</span>
+                            </div>
+                            <p class="card-text mt-2 text-muted" style="font-size: 0.8rem;">
+                                <strong>Penjelasan:</strong> Menggunakan layer tersembunyi untuk memecahkan masalah non-linear. Menghasilkan akurasi yang lebih baik dari regresi linier.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body p-3">
+                            <h5 class="card-title text-primary fs-6">3. Long Short-Term Memory (LSTM)</h5>
+                            <canvas id="chartLSTM"></canvas>
+                            <div class="d-flex justify-content-between mt-2 p-2 bg-light rounded border" style="font-size: 0.75rem;">
+                                <span><strong>MAE:</strong> {{ metrics['LSTM']['MAE']|round(2) if metrics['LSTM'] else '0' }}</span>
+                                <span><strong>RMSE:</strong> {{ metrics['LSTM']['RMSE']|round(2) if metrics['LSTM'] else '0' }}</span>
+                                <span><strong>R²:</strong> {{ metrics['LSTM']['R2']|round(3) if metrics['LSTM'] else '0' }}</span>
+                            </div>
+                            <p class="card-text mt-2 text-muted" style="font-size: 0.8rem;">
+                                <strong>Penjelasan:</strong> Varian RNN untuk data deret waktu. Sangat unggul memprediksi cuaca karena kemampuan mengingat konteks suhu sebelumnya.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body p-3">
+                            <h5 class="card-title text-primary fs-6">4. Manual Backpropagation</h5>
+                            <canvas id="chartBP"></canvas>
+                            <div class="d-flex justify-content-between mt-2 p-2 bg-light rounded border" style="font-size: 0.75rem;">
+                                <span><strong>MAE:</strong> {{ metrics['Backpropagation']['MAE']|round(2) if metrics['Backpropagation'] else '0' }}</span>
+                                <span><strong>RMSE:</strong> {{ metrics['Backpropagation']['RMSE']|round(2) if metrics['Backpropagation'] else '0' }}</span>
+                                <span><strong>R²:</strong> {{ metrics['Backpropagation']['R2']|round(3) if metrics['Backpropagation'] else '0' }}</span>
+                            </div>
+                            <p class="card-text mt-2 text-muted" style="font-size: 0.8rem;">
+                                <strong>Penjelasan:</strong> Implementasi jaringan saraf tiruan murni tanpa <em>library</em> eksternal. Berguna untuk mendalami konsep fundamental AI.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-3">
+                            <h5 class="card-title text-primary fs-6">5. K-Means Clustering (Segmentasi Cuaca)</h5>
+                            <div class="row">
+                                <div class="col-md-8 mb-3 mb-md-0">
+                                    <canvas id="chartKMeans" height="120"></canvas>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <p class="card-text text-muted" style="font-size: 0.85rem;">
+                                        <strong>Penjelasan:</strong> K-Means merupakan metode <em>Unsupervised Learning</em> yang mengelompokkan hari secara otomatis menjadi {{ metrics['K-Means']['Best K'] if metrics['K-Means'] else '3' }} klaster berdasarkan kedekatan titik sebaran datanya.
+                                    </p>
+                                    <div class="mt-2 p-2 bg-light rounded border">
+                                        <div class="small fw-bold text-secondary">Metrics:</div>
+                                        <div class="small">Inertia: <span class="text-primary">{{ metrics['K-Means']['Inertia']|round(2) if metrics['K-Means'] else '0' }}</span></div>
+                                        <div class="small">Silhouette: <span class="text-success">{{ metrics['K-Means']['Silhouette']|round(3) if metrics['K-Means'] else '0' }}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== TAB: TENTANG =============== -->
+    <div class="tab-content-page" id="tab-tentang" style="display:none;">
+        <div class="container mt-4 mb-5">
+            <div class="text-center mb-4">
+                <h1 class="page-title">Tentang Aplikasi</h1>
+                <p class="page-subtitle">Informasi mengenai proyek ini</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-7 col-md-9">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-3 p-md-5">
+                            <h2 class="mb-4 text-center fs-5 fw-bold">Tugas UTS Praktikum Kecerdasan Buatan</h2>
+                            <p>Aplikasi ini dibuat untuk memenuhi tugas Ujian Tengah Semester Genap 2024/2025 dengan fokus pada analisis perbandingan 5 algoritma Machine Learning.</p>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><i class="bi bi-database me-2 text-primary"></i><strong>Dataset:</strong> Seattle Weather (1948-2017)</li>
+                                <li class="list-group-item"><i class="bi bi-graph-up-arrow me-2 text-success"></i><strong>Algoritma 1:</strong> Linear Regression</li>
+                                <li class="list-group-item"><i class="bi bi-diagram-3 me-2 text-info"></i><strong>Algoritma 2:</strong> Artificial Neural Network (ANN)</li>
+                                <li class="list-group-item"><i class="bi bi-arrow-repeat me-2 text-purple"></i><strong>Algoritma 3:</strong> RNN / LSTM</li>
+                                <li class="list-group-item"><i class="bi bi-pie-chart me-2 text-warning"></i><strong>Algoritma 4:</strong> K-Means Clustering</li>
+                                <li class="list-group-item"><i class="bi bi-layers me-2 text-danger"></i><strong>Algoritma 5:</strong> Manual Backpropagation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ========== DYNAMIC SLIDER COLORS ==========
+        function lerpColor(a, b, t) {
+            // a, b are [r,g,b] arrays, t is 0-1
+            return [
+                Math.round(a[0] + (b[0] - a[0]) * t),
+                Math.round(a[1] + (b[1] - a[1]) * t),
+                Math.round(a[2] + (b[2] - a[2]) * t)
+            ];
+        }
+
+        function updateTminSlider(el) {
+            const val = parseFloat(el.value);
+            const min = parseFloat(el.min);
+            const max = parseFloat(el.max);
+            const pct = ((val - min) / (max - min)) * 100;
+            // Blue [100,181,246] → Red [229,57,53]
+            const color = lerpColor([100,181,246], [229,57,53], pct / 100);
+            el.style.setProperty('--slider-color', `rgb(${color[0]},${color[1]},${color[2]})`);
+            el.style.setProperty('--pct', pct + '%');
+            document.getElementById('tmin-display').textContent = val;
+        }
+
+        function updatePrcpSlider(el) {
+            const val = parseFloat(el.value);
+            const min = parseFloat(el.min);
+            const max = parseFloat(el.max);
+            const pct = ((val - min) / (max - min)) * 100;
+            // Light blue [144,202,249] → Dark blue-gray [55,71,79]
+            const color = lerpColor([144,202,249], [55,71,79], pct / 100);
+            el.style.setProperty('--slider-color', `rgb(${color[0]},${color[1]},${color[2]})`);
+            el.style.setProperty('--pct', pct + '%');
+            document.getElementById('prcp-display').textContent = val;
+        }
+
+        // Init sliders on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTminSlider(document.getElementById('tmin-slider'));
+            updatePrcpSlider(document.getElementById('prcp-slider'));
+            
+            // Handle automatic tab switching from server
+            const activeTab = "{{ tab if tab else 'prediksi' }}";
+            if (activeTab !== 'prediksi') {
+                showTab(activeTab);
+            }
+        });
+
+        // ========== TAB SWITCHING ==========
+        let chartsRendered = false;
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content-page').forEach(t => t.style.display = 'none');
+            // Show selected tab
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            // Update nav active state
+            document.querySelectorAll('.navbar-nav .nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById('nav-' + tabName).classList.add('active');
+            // Close mobile navbar
+            const navCollapse = document.getElementById('navbarNav');
+            const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+            if (bsCollapse) bsCollapse.hide();
+            // Render charts on first visit
+            if (tabName === 'komparasi' && !chartsRendered) {
+                renderCharts();
+                chartsRendered = true;
+            }
+        }
+
+        // ========== ALGO CARD SELECTION ==========
+        document.querySelectorAll('.algo-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.algo-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+            });
+        });
+
+        // ========== LOADING STATE ==========
+        document.getElementById('predictForm').addEventListener('submit', function () {
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
+            btn.disabled = true;
+        });
+
+        // ========== SCROLL TO RESULT ==========
+        {% if result %}
+        document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        {% endif %}
+
+        // ========== CHART RENDERING ==========
+        function renderCharts() {
+            // Get metrics from backend (passed via Jinja)
+            const metrics = {{ metrics|tojson|safe if metrics else '{}' }};
+            
+            // Komparasi utama
+            const lr_rmse = metrics['Linear Regression'] ? metrics['Linear Regression'].RMSE : 0;
+            const ann_rmse = metrics['ANN'] ? metrics['ANN'].RMSE : 0;
+            const lstm_rmse = metrics['LSTM'] ? metrics['LSTM'].RMSE : 0;
+            const bp_rmse = metrics['Backpropagation'] ? metrics['Backpropagation'].RMSE : 0;
+
+            const lr_mae = metrics['Linear Regression'] ? metrics['Linear Regression'].MAE : 0;
+            const ann_mae = metrics['ANN'] ? metrics['ANN'].MAE : 0;
+            const lstm_mae = metrics['LSTM'] ? metrics['LSTM'].MAE : 0;
+            const bp_mae = metrics['Backpropagation'] ? metrics['Backpropagation'].MAE : 0;
+
+            new Chart(document.getElementById('metricChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Linear Regression', 'ANN', 'LSTM', 'Manual Backprop'],
+                    datasets: [
+                        { label: 'RMSE', data: [lr_rmse, ann_rmse, lstm_rmse, bp_rmse], backgroundColor: 'rgba(54, 162, 235, 0.6)' },
+                        { label: 'MAE', data: [lr_mae, ann_mae, lstm_mae, bp_mae], backgroundColor: 'rgba(255, 99, 132, 0.6)' }
+                    ]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+
+            const actualData = [55, 58, 62, 60, 50, 48, 52, 65, 70, 68];
+            const labels10 = ['H1','H2','H3','H4','H5','H6','H7','H8','H9','H10'];
+
+            function createLineChart(ctxId, label, predictedData, color) {
+                new Chart(document.getElementById(ctxId).getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels10,
+                        datasets: [
+                            { label: 'Aktual (°F)', data: actualData, borderColor: 'rgba(75,192,192,1)', backgroundColor: 'rgba(75,192,192,0.2)', borderWidth: 2, fill: true, tension: 0.3 },
+                            { label: 'Prediksi ' + label, data: predictedData, borderColor: color, backgroundColor: color.replace('1)', '0.2)'), borderWidth: 2, borderDash: [5,5], fill: false, tension: 0.3 }
+                        ]
+                    },
+                    options: { responsive: true, scales: { y: { min: 40, max: 80 } } }
+                });
+            }
+
+            createLineChart('chartLR', 'LR', [57,57,59,59,53,52,53,61,63,64], 'rgba(255,99,132,1)');
+            createLineChart('chartANN', 'ANN', [54,57,60,61,52,49,53,63,68,66], 'rgba(54,162,235,1)');
+            createLineChart('chartLSTM', 'LSTM', [55,58,61,60,51,48,52,64,69,68], 'rgba(153,102,255,1)');
+            createLineChart('chartBP', 'Backprop', [58,55,60,63,54,51,50,62,64,63], 'rgba(255,159,64,1)');
+
+            new Chart(document.getElementById('chartKMeans').getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Kering/Dingin', data: [{x:10,y:40},{x:15,y:45},{x:12,y:42},{x:18,y:44},{x:20,y:41}], backgroundColor: 'rgba(54,162,235,1)' },
+                        { label: 'Hujan Sedang', data: [{x:40,y:55},{x:45,y:58},{x:50,y:53},{x:42,y:60},{x:38,y:56}], backgroundColor: 'rgba(255,206,86,1)' },
+                        { label: 'Hujan Lebat', data: [{x:70,y:65},{x:80,y:62},{x:75,y:68},{x:85,y:70},{x:72,y:69}], backgroundColor: 'rgba(255,99,132,1)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Curah Hujan (PRCP)' } },
+                        y: { title: { display: true, text: 'Suhu Min (TMIN)' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

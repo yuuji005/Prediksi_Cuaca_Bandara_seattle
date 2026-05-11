@@ -1,0 +1,548 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    min-height: 100vh;
+    /* Default Background */
+    background-image: url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* =========================================
+   NAVBAR
+   ========================================= */
+.navbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #0d6efd, #0dcaf0) !important;
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+}
+
+/* =========================================
+   PAGE HEADER
+   ========================================= */
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+body.bg-rainy .page-title,
+body.bg-drizzle .page-title,
+body.bg-sunny .page-title {
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+body.bg-rainy .page-subtitle,
+body.bg-drizzle .page-subtitle,
+body.bg-sunny .page-subtitle {
+    color: rgba(255,255,255,0.85);
+}
+
+/* =========================================
+   TAB CONTENT PAGES
+   ========================================= */
+.tab-content-page {
+    display: none;
+}
+
+.tab-content-page.active {
+    display: block;
+}
+
+/* =========================================
+   CARD
+   ========================================= */
+.card {
+    border: none;
+    border-radius: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeIn 0.6s ease-in-out;
+    background: #fff;
+}
+
+/* =========================================
+   TOMBOL SUBMIT
+   ========================================= */
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    letter-spacing: 0.02em;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0b5ed7, #0bacce);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(13, 110, 253, 0.35);
+}
+
+/* =========================================
+   LABEL & BADGE NILAI
+   ========================================= */
+.input-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 0;
+}
+
+.value-badge {
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    min-width: 90px;
+    text-align: center;
+}
+
+/* =========================================
+   SLIDER RANGE
+   ========================================= */
+.input-group-slider {
+    background: #f8f9fa;
+    border-radius: 14px;
+    padding: 16px 20px;
+    border: 1px solid #e9ecef;
+}
+
+.custom-range {
+    --slider-color: #0d6efd;
+    --pct: 50%;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--slider-color) 0%, var(--slider-color) var(--pct), #dee2e6 var(--pct), #dee2e6 100%);
+    outline: none;
+    cursor: pointer;
+    margin: 10px 0 6px;
+    transition: background 0.3s ease;
+}
+
+.custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--slider-color);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease, background 0.3s ease;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.custom-range::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--slider-color);
+    border: none;
+    cursor: pointer;
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* =========================================
+   KARTU PILIH ALGORITMA
+   ========================================= */
+.algo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.algo-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    text-align: center;
+    user-select: none;
+}
+
+.algo-card:hover {
+    border-color: #0d6efd;
+    background: #f0f5ff;
+    transform: translateY(-2px);
+}
+
+.algo-card.active {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #eef3ff, #e0f0ff);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+.algo-icon {
+    font-size: 1.7rem;
+    color: #0d6efd;
+    margin-bottom: 6px;
+}
+
+.algo-card.active .algo-icon {
+    color: #0a58ca;
+}
+
+.algo-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.2;
+}
+
+.algo-tag {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 2px;
+    background: #f3f4f6;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-top: 4px;
+}
+
+.algo-card.active .algo-tag {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* =========================================
+   RESULT CARD
+   ========================================= */
+.result-card {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+@keyframes animate-pop {
+    0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-pop {
+    animation: animate-pop 0.5s ease forwards;
+}
+
+/* Tampilan Suhu Besar */
+.temp-display {
+    padding: 10px 0;
+}
+
+.temp-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.temp-value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 4px 0;
+}
+
+.temp-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.temp-sub {
+    font-size: 0.85rem;
+}
+
+/* Cluster */
+.cluster-section {
+    padding: 8px 4px;
+}
+
+/* =========================================
+   KEYFRAMES
+   ========================================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   DYNAMIC BACKGROUNDS (K-MEANS)
+   ========================================= */
+body.bg-rainy,
+body.bg-drizzle,
+body.bg-sunny {
+    position: relative;
+    background-color: transparent;
+}
+
+body.bg-rainy::before,
+body.bg-drizzle::before,
+body.bg-sunny::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -2;
+    background-size: cover;
+    background-position: center;
+    animation: bgPan 30s infinite alternate linear;
+}
+
+/* Hujan Lebat */
+body.bg-rainy::before {
+    background-image: url('https://images.unsplash.com/photo-1438449805896-28a666819a20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+}
+
+/* Hujan Sedang */
+body.bg-drizzle::before {
+    background-image: url('https://images.unsplash.com/photo-1438449805896-28a666819a20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+}
+
+/* Cerah/Kering */
+body.bg-sunny::before {
+    background-image: url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+}
+
+/* Overlays untuk memperjelas teks (Gelap untuk Hujan, Terang untuk Cerah) */
+body.bg-rainy::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+body.bg-drizzle::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+body.bg-sunny::after,
+body.bg-light::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes bgPan {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+/* =========================================
+   GLASSMORPHISM UNTUK KARTU (Saat ada gambar background)
+   ========================================= */
+body.bg-rainy .card,
+body.bg-drizzle .card,
+body.bg-sunny .card {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.bg-rainy .card-header,
+body.bg-drizzle .card-header,
+body.bg-sunny .card-header {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+body.bg-rainy .navbar,
+body.bg-drizzle .navbar,
+body.bg-sunny .navbar {
+    background: rgba(13, 110, 253, 0.75) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* =========================================
+   MOBILE RESPONSIVE
+   ========================================= */
+@media (max-width: 767px) {
+    .page-title {
+        font-size: 1.3rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .container.mt-4 {
+        margin-top: 1rem !important;
+    }
+
+    /* Slider adjustments */
+    .input-group-slider {
+        padding: 12px 14px;
+    }
+
+    .input-label {
+        font-size: 0.8rem;
+    }
+
+    .value-badge {
+        font-size: 0.85rem;
+        min-width: 75px;
+        padding: 3px 10px;
+    }
+
+    .range-labels {
+        font-size: 0.65rem;
+    }
+
+    .range-labels small {
+        display: none;
+    }
+
+    /* Algo grid: 2 kolom tetap tapi lebih compact */
+    .algo-grid {
+        gap: 8px;
+    }
+
+    .algo-card {
+        padding: 10px 6px;
+        border-radius: 12px;
+    }
+
+    .algo-icon {
+        font-size: 1.3rem;
+        margin-bottom: 4px;
+    }
+
+    .algo-name {
+        font-size: 0.7rem;
+    }
+
+    .algo-tag {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+
+    /* Submit button */
+    .btn-primary {
+        font-size: 0.9rem;
+        padding: 12px !important;
+    }
+
+    /* Result card */
+    .temp-icon {
+        font-size: 2.2rem;
+    }
+
+    .temp-value {
+        font-size: 2.5rem;
+    }
+
+    .temp-label {
+        font-size: 0.85rem;
+    }
+
+    .temp-sub {
+        font-size: 0.75rem;
+    }
+
+    .cluster-section {
+        flex-wrap: wrap;
+    }
+
+    /* Card padding */
+    .card-body {
+        padding: 16px !important;
+    }
+
+    /* Comparison cards */
+    .card-title {
+        font-size: 0.9rem !important;
+    }
+
+    .card-text {
+        font-size: 0.8rem !important;
+    }
+
+    /* About list */
+    .list-group-item {
+        font-size: 0.85rem;
+        padding: 10px 12px;
+    }
+
+    /* Alert */
+    .alert {
+        font-size: 0.85rem;
+        padding: 10px 14px;
+    }
+}
+
+@media (max-width: 400px) {
+    .page-title {
+        font-size: 1.1rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+
+    .temp-value {
+        font-size: 2rem;
+    }
+
+    .temp-icon {
+        font-size: 1.8rem;
+    }
+
+    .algo-name {
+        font-size: 0.65rem;
+    }
+
+    .value-badge {
+        font-size: 0.78rem;
+        min-width: 65px;
+    }
+}

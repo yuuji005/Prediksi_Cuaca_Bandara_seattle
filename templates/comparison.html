@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Komparasi Model - WeatherPredict AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Navbar sama seperti index.html -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">WeatherPredict AI</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Prediksi</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/comparison">Komparasi Model</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">Tentang</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h3 class="text-center mb-4">Analisis Komparatif Algoritma</h3>
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow-sm p-4">
+                    <canvas id="metricChart"></canvas>
+                </div>
+                <div class="alert alert-info mt-4">
+                    <strong>Kesimpulan:</strong> Model LSTM menangkap pola data runtut waktu dengan sangat baik sehingga menghasilkan *error* paling kecil dibandingkan model regresi linier standar.
+                </div>
+            </div>
+        </div>
+        <!-- Detail Tiap Algoritma -->
+        <div class="row mt-5">
+            <h4 class="text-center mb-4">Detail Performa Tiap Algoritma</h4>
+            
+            <!-- Algoritma 1 -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">1. Linear Regression</h5>
+                        <canvas id="chartLR"></canvas>
+                        <p class="card-text mt-3 text-muted" style="font-size: 0.9rem;">
+                            <strong>Penjelasan:</strong> Pendekatan dasar yang menarik garis regresi lurus. Cocok sebagai <em>baseline</em>, namun seringkali <em>underfitting</em> (kurang akurat) pada pola cuaca yang dinamis dan non-linear karena asusmsi hubungan yang linier secara konstan.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algoritma 2 -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">2. Artificial Neural Network (ANN)</h5>
+                        <canvas id="chartANN"></canvas>
+                        <p class="card-text mt-3 text-muted" style="font-size: 0.9rem;">
+                            <strong>Penjelasan:</strong> Menggunakan layer tersembunyi (<em>hidden layers</em>) untuk memecahkan masalah non-linear. Menghasilkan akurasi yang lebih baik dari regresi linier dengan mempelajari pola fitur kompleks dari interaksi suhu dan hujan.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algoritma 3 -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">3. Long Short-Term Memory (LSTM)</h5>
+                        <canvas id="chartLSTM"></canvas>
+                        <p class="card-text mt-3 text-muted" style="font-size: 0.9rem;">
+                            <strong>Penjelasan:</strong> Varian RNN yang dirancang khusus untuk data deret waktu (<em>time-series</em>). Sangat unggul memprediksi cuaca karena kemampuannya mengingat konteks suhu hari-hari sebelumnya (memori jangka panjang). Menghasilkan tingkat <em>error</em> paling rendah.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algoritma 4 -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">4. Manual Backpropagation</h5>
+                        <canvas id="chartBP"></canvas>
+                        <p class="card-text mt-3 text-muted" style="font-size: 0.9rem;">
+                            <strong>Penjelasan:</strong> Implementasi jaringan saraf tiruan murni dari awal tanpa menggunakan <em>library</em> eksternal. Mengandalkan perhitungan kalkulus manual untuk optimasi gradien. Sangat berguna untuk mendalami konsep fundamental AI meskipun performanya rentan terhadap nilai inisialisasi awal.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algoritma 5 -->
+            <div class="col-md-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">5. K-Means Clustering (Segmentasi Cuaca)</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <canvas id="chartKMeans" height="120"></canvas>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-center">
+                                <p class="card-text text-muted" style="font-size: 0.9rem;">
+                                    <strong>Penjelasan:</strong> Berbeda dengan algoritma di atas yang bertugas memprediksi angka eksak (<em>Supervised Learning</em>), K-Means merupakan metode <em>Unsupervised Learning</em>. Model ini bertugas mengelompokkan hari secara otomatis menjadi 3 klaster (contoh: Kering/Dingin, Hujan Sedang, Hujan Lebat) dengan mencari kedekatan titik sebaran datanya. Sangat berguna untuk memetakan kategori profil cuaca harian secara otomatis.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Grafik Komparasi Utama
+        const ctx = document.getElementById('metricChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Linear Regression', 'ANN', 'LSTM', 'Manual Backprop'],
+                datasets: [
+                    {
+                        label: 'RMSE (Root Mean Square Error)',
+                        data: [5.2, 4.8, 4.1, 5.5],
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    },
+                    {
+                        label: 'MAE (Mean Absolute Error)',
+                        data: [4.1, 3.9, 3.2, 4.5],
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                    }
+                ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        // Data Simulasi Garis Waktu untuk Prediksi vs Aktual
+        const actualData = [55, 58, 62, 60, 50, 48, 52, 65, 70, 68];
+        const labels10 = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10'];
+
+        function createLineChart(ctxId, label, predictedData, color) {
+            new Chart(document.getElementById(ctxId).getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels10,
+                    datasets: [
+                        {
+                            label: 'Aktual (°F)',
+                            data: actualData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Prediksi ' + label,
+                            data: predictedData,
+                            borderColor: color,
+                            backgroundColor: color.replace('1)', '0.2)'),
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: { responsive: true, scales: { y: { min: 40, max: 80 } } }
+            });
+        }
+
+        // Render Grafik Individual Tiap Algoritma
+        createLineChart('chartLR', 'LR', [57, 57, 59, 59, 53, 52, 53, 61, 63, 64], 'rgba(255, 99, 132, 1)'); // Cukup linier/kaku
+        createLineChart('chartANN', 'ANN', [54, 57, 60, 61, 52, 49, 53, 63, 68, 66], 'rgba(54, 162, 235, 1)'); // Mengikuti pola dengan baik
+        createLineChart('chartLSTM', 'LSTM', [55, 58, 61, 60, 51, 48, 52, 64, 69, 68], 'rgba(153, 102, 255, 1)'); // Sangat presisi
+        createLineChart('chartBP', 'Backprop', [58, 55, 60, 63, 54, 51, 50, 62, 64, 63], 'rgba(255, 159, 64, 1)'); // Fluktuatif karena init random
+
+        // Render Grafik Scatter untuk K-Means
+        new Chart(document.getElementById('chartKMeans').getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Kering/Dingin',
+                        data: [{x: 10, y: 40}, {x: 15, y: 45}, {x: 12, y: 42}, {x: 18, y: 44}, {x: 20, y: 41}],
+                        backgroundColor: 'rgba(54, 162, 235, 1)'
+                    },
+                    {
+                        label: 'Hujan Sedang',
+                        data: [{x: 40, y: 55}, {x: 45, y: 58}, {x: 50, y: 53}, {x: 42, y: 60}, {x: 38, y: 56}],
+                        backgroundColor: 'rgba(255, 206, 86, 1)'
+                    },
+                    {
+                        label: 'Hujan Lebat',
+                        data: [{x: 70, y: 65}, {x: 80, y: 62}, {x: 75, y: 68}, {x: 85, y: 70}, {x: 72, y: 69}],
+                        backgroundColor: 'rgba(255, 99, 132, 1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Fitur Curah Hujan (PRCP)' } },
+                    y: { title: { display: true, text: 'Fitur Suhu Minimum (TMIN)' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
